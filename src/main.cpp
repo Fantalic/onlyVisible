@@ -33,25 +33,12 @@ struct Cube {
     Color color;
 };
 
-// Define a function to check if a cube is visible to the camera
 bool isCubeVisible(Camera camera, Cube cube, Cube cubes[], int numCubes) {
     // Check if the cube is in the view of the camera
     Vector2 cubeScreenPos = GetWorldToScreen(cube.position, camera);
     if (cubeScreenPos.x < 0 || cubeScreenPos.x > GetScreenWidth() || cubeScreenPos.y < 0 || cubeScreenPos.y > GetScreenHeight()) {
         return false;
-    }
-    
-    // Check if the cube is obstructed by any other cubes
-    // for (int i = 0; i < numCubes; i++) {
-    //     if (cubes[i].position.x == cube.position.x && cubes[i].position.y == cube.position.y && cubes[i].position.z == cube.position.z) {
-    //         continue; // Skip self
-    //     }
-    //     if (CheckCollisionBoxes((BoundingBox){ (Vector3){cube.position.x - 0.5f, cube.position.y - 0.5f, cube.position.z - 0.5f}, (Vector3){cube.position.x + 0.5f, cube.position.y + 0.5f, cube.position.z + 0.5f} },
-    //                             (BoundingBox){ (Vector3){cubes[i].position.x - 0.5f, cubes[i].position.y - 0.5f, cubes[i].position.z - 0.5f}, (Vector3){cubes[i].position.x + 0.5f, cubes[i].position.y + 0.5f, cubes[i].position.z + 0.5f} })) {
-    //         return false;
-    //     }
-    // }
-    
+    }  
     // Cube is visible
     return true;
 }
@@ -86,7 +73,6 @@ int main() {
 
     int visibleCubes = 0 ; 
     int frameCounter = 0 ;
-    // Set the background color
 
     while (!WindowShouldClose()) {
         UpdateCamera(&camera, CAMERA_FIRST_PERSON);
@@ -114,12 +100,10 @@ int main() {
                             }
                         }
 
-                        //cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
                         visibleCubes += 1;
                         DrawCube(cubes[i].position, 1.0f, 1.0f, 1.0f, cubes[i].color);
                     } else {
                         cubes[i].color.a = 0;
-                        //cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 0 };
                     }
                 }
 
@@ -135,11 +119,3 @@ int main() {
 
     return 0;
 }
-
-
-
-                   //if (!Vector3IsEqual(camera.position, prevCameraPos) || !Vector3IsEqual(camera.target, prevCameraTarget)) { }
-
-                        // Update the previous position and rotation
-                        // prevCameraPos = camera.position;
-                        // prevCameraTarget = camera.target;

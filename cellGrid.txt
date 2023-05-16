@@ -1,0 +1,98 @@
+bool isCubeVisible(Camera camera, Cube cube, Cube cubes[], int numCubes, Cube** cubesMatrix) {
+    // Check if the cube is within view of the camera
+    Vector2 screenPos = GetWorldToScreen(cube.position, camera);
+    if (screenPos.x < 0 || screenPos.x > GetScreenWidth() || screenPos.y < 0 || screenPos.y > GetScreenHeight()) {
+        return false;
+    }
+
+    // Check if the cube is occluded by any other cubes in the same grid cell
+    int gridX = (int)(cube.position.x / GRID_SIZE);
+    int gridY = (int)(cube.position.y / GRID_SIZE);
+    if (cubesMatrix[gridX][gridY].id != cube.id) {
+        return false;
+    }
+
+    // Check if the cube is occluded by any other cubes
+    for (int i = 0; i < numCubes; i++) {
+        if (cubes[i].id == cube.id) {
+            continue;
+        }
+        if (CheckCollisionBoxes((BoundingBox){ { cube.position.x - CUBE_SIZE / 2, cube.position.y - CUBE_SIZE / 2, cube.position.z - CUBE_SIZE / 2 },
+                                                { cube.position.x + CUBE_SIZE / 2, cube.position.y + CUBE_SIZE / 2, cube.position.z + CUBE_SIZE / 2 } },
+                                 (BoundingBox){ { cubes[i].position.x - CUBE_SIZE / 2, cubes[i].position.y - CUBE_SIZE / 2, cubes[i].position.z - CUBE_SIZE / 2 },
+                                                { cubes[i].position.x + CUBE_SIZE / 2, cubes[i].position.y + CUBE_SIZE / 2, cubes[i].position.z + CUBE_SIZE / 2 } })) {
+            return false;
+        }
+    }
+
+    // The cube is visible
+    return true;
+}
+
+
+// Define the grid size
+#define GRID_SIZE 100
+
+// Initialize the cubes matrix
+const int numGridCells = 201;
+Cube** cubesMatrix = (Cube**)malloc(numGridCells * sizeof(Cube*));
+for (int i = 0; i < numGridCells; i++) {
+    cubesMatrix[i] = (Cube*)malloc(numGridCells * sizeof(Cube));
+    for (int j = 0; j < numGridCells; j++) {
+        cubesMatrix[i][j] = { -1 };
+    }
+}
+
+// Initialize the cubes
+const int numCubes = 1000000;
+Cube cubes[numCubes];
+for (int i = 0; i < numCubes; i++) {
+    cubes[i].id = i;
+    cubes[i].position = { (float)GetRandomValue(-1000, 1000), (float)GetRandomValue(-1000, 1000), (float)GetRandomValue(-1000, 1000) };
+    cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+
+    // Add the cube to the matrix
+    int gridX = (int)(cubes[i].position.x / GRID_SIZE);
+    int gridY = (int)(cubes[i].position.y / GRID_SIZE);
+    cubesMatrix[gridX][gridY] = cubes + i;
+}
+
+// Update the camera and grid position
+while (!WindowShouldClose()) {
+
+    // Update the camera position
+    UpdateCamera(&camera);
+
+    // Update the grid position
+    int gridX = (int)(camera.position.x / GRID_SIZE);
+    int gridY = (int)(camera.position.y / GRID_SIZE);
+
+    // Draw the cubes that are visible to the camera
+    BeginMode3D(camera);
+
+    ClearBackground(RAYWHITE);
+
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (gridX + i >= 0 && gridX + i < numGridCells && gridY + j >= 0 && gridY + j < numGridCells) {
+                for (int k = 0; k < numCubes; k++) {
+                    Cube* cube = cubesMatrix[gridX + i][gridY + j];
+                    if (cube != NULL && isCubeVisible(camera, *cube)) {
+                        DrawCube(cube->position, 1.0f, 1.0f, 1.0f, cube->color);
+                    }
+                }
+            }
+        }
+    }
+
+    EndMode3D();
+}
+
+// Free the memory
+for (int i = 0; i < numGridCells; i++) {
+    free(cubesMatrix[i]);
+}
+free(cubesMatrix);
+
+return 0;
+}
