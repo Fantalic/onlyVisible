@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
-
+#include "PerlinNoise.h"
 bool CheckCollisionRayBox(Ray ray, BoundingBox box)
 {
     float tmin = -INFINITY, tmax = INFINITY;
@@ -31,6 +31,7 @@ bool CheckCollisionRayBox(Ray ray, BoundingBox box)
 struct Cube {
     Vector3 position;
     Color color;
+    int size =10;
 };
 
 bool isCubeVisible(Camera camera, Cube cube, Cube cubes[], int numCubes) {
@@ -43,29 +44,58 @@ bool isCubeVisible(Camera camera, Cube cube, Cube cubes[], int numCubes) {
     return true;
 }
 
+
 bool Vector3IsEqual(Vector3 v1, Vector3 v2) {
     return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
 }
 
 int main() {
-    // Initialize raylib
-    InitWindow(800, 450, "Occlusion Culling Example");
 
+    PerlinNoise pn(rand() % UINT_MAX);
+
+    // Initialize raylib
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
+    InitWindow(800*2, 450*2, "Occlusion Culling Example");
+    
     // Initialize the camera
     Camera camera = { 0 };
-    camera.position = { 30.0f, 30.0f, 30.0f };
+    camera.position = { 30.0f, 10.0f, 10.0f };
     camera.target = { 0.0f, 0.0f, 0.0f };
     camera.up = { 0.0f, 1.0f, 0.0f };
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
     // Initialize the cubes
-    const int numCubes = 100;
+    const float cubeSize = 0.5f;
+    const int numCubes = 10000;
     Cube cubes[numCubes];
-    for (int i = 0; i < numCubes; i++) {
-        cubes[i].position = { (float)GetRandomValue(-20, 20), (float)GetRandomValue(-100, 100), (float)GetRandomValue(-100, 100) };
-        cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+    // for (int i = 0; i < numCubes; i++) {
+    //     cubes[i].position = { (float)GetRandomValue(-20, 20), (float)GetRandomValue(-100, 100), (float)GetRandomValue(-100, 100) };
+    //     cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+    // }
+
+    std::vector<std::vector<double>> terrainGraph = pn.generate3DGraph(100);
+
+    int cubeIndex = 0;
+    for (int x = 0; x < 100; x++) {
+        for (int y = 0; y < 100; y++) {
+
+            //TODO: round the z value to int
+            double nf = terrainGraph[x][y];
+            int z = (int)std::round(nf * 100 - 50);
+
+            Vector3 pos = (Vector3){x*cubeSize,z*cubeSize,y*cubeSize};
+
+            cubes[cubeIndex].position = pos;
+            cubes[cubeIndex].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+            cubes[cubeIndex].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)(int)std::round(100*nf), (unsigned char)(int)std::round(255*nf), 255 };
+            
+            
+            
+            cubeIndex+=1;
+        }
     }
+
 
     // Store the camera's previous position and rotation
     Vector3 prevCameraPos = camera.position;
@@ -91,17 +121,29 @@ int main() {
 
                 DrawGrid(10, 1.0f);
 
+                // #################################
+                // make a grid, so don't have to iterate all objects in the world, but only the ones that are in the view of the camera
+                // there will be an 3d array representing the space and the items in it. Each elemnt holds an instance of an element.
+                // the class holds a render function, that starts rendering the object when its in the view of the camera.
+                // the grid holds points of the objects mesh. representing the edges of the mesh 
+                // if  
+                // how has the grid has to look ? how big are its pieces ? 
+                // maybe they 
+                // ##################################
+
+
                 // Draw the cubes that are visible to the camera
                 for (int i = 0; i < numCubes; i++) {
                     if (isCubeVisible(camera, cubes[i], cubes, numCubes)) {
+                        //fade-in effect
                         if(cubes[i].color.a < 255){
-                            if(frameCounter % 60 == 0 ){
+                            if(frameCounter % 1 == 0 ){
                                 cubes[i].color.a = cubes[i].color.a + 1;
                             }
                         }
 
                         visibleCubes += 1;
-                        DrawCube(cubes[i].position, 1.0f, 1.0f, 1.0f, cubes[i].color);
+                        DrawCube(cubes[i].position, cubeSize, cubeSize, cubeSize, cubes[i].color);
                     } else {
                         cubes[i].color.a = 0;
                     }
@@ -111,6 +153,7 @@ int main() {
             EndMode3D();
 
             DrawText(TextFormat("visible CUbes: %d", visibleCubes), 10, 30, 20, BLACK);
+            DrawText(TextFormat("test: %d", terrainGraph[50][50]), 10, 50, 20, BLACK);
         EndDrawing();
     }
 
