@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "PerlinNoise.h"
+#include "Cube.h"
+
 bool CheckCollisionRayBox(Ray ray, BoundingBox box)
 {
     float tmin = -INFINITY, tmax = INFINITY;
@@ -27,24 +29,6 @@ bool CheckCollisionRayBox(Ray ray, BoundingBox box)
     return tmax >= tmin;
 }
 
-//Define a struct to represent a cube
-struct Cube {
-    Vector3 position;
-    Color color;
-    int size =10;
-};
-
-bool isCubeVisible(Camera camera, Cube cube, Cube cubes[], int numCubes) {
-    // Check if the cube is in the view of the camera
-    Vector2 cubeScreenPos = GetWorldToScreen(cube.position, camera);
-    if (cubeScreenPos.x < 0 || cubeScreenPos.x > GetScreenWidth() || cubeScreenPos.y < 0 || cubeScreenPos.y > GetScreenHeight()) {
-        return false;
-    }  
-    // Cube is visible
-    return true;
-}
-
-
 bool Vector3IsEqual(Vector3 v1, Vector3 v2) {
     return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
 }
@@ -68,7 +52,7 @@ int main() {
     // Initialize the cubes
     const float cubeSize = 0.5f;
     const int numCubes = 10000;
-    Cube cubes[numCubes];
+    std::vector<Cube> cubes;
     // for (int i = 0; i < numCubes; i++) {
     //     cubes[i].position = { (float)GetRandomValue(-20, 20), (float)GetRandomValue(-100, 100), (float)GetRandomValue(-100, 100) };
     //     cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
@@ -76,7 +60,6 @@ int main() {
 
     std::vector<std::vector<double>> terrainGraph = pn.generate3DGraph(100);
 
-    int cubeIndex = 0;
     for (int x = 0; x < 100; x++) {
         for (int y = 0; y < 100; y++) {
 
@@ -86,13 +69,12 @@ int main() {
 
             Vector3 pos = (Vector3){x*cubeSize,z*cubeSize,y*cubeSize};
 
-            cubes[cubeIndex].position = pos;
-            cubes[cubeIndex].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
-            cubes[cubeIndex].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)(int)std::round(100*nf), (unsigned char)(int)std::round(255*nf), 255 };
+            Cube cube = Cube();
+            cube.position = pos;
+            // cube.color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+            cube.color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)(int)std::round(100*nf), (unsigned char)(int)std::round(255*nf), 255 };
             
-            
-            
-            cubeIndex+=1;
+            cubes.push_back(cube);
         }
     }
 
@@ -133,19 +115,19 @@ int main() {
 
 
                 // Draw the cubes that are visible to the camera
-                for (int i = 0; i < numCubes; i++) {
-                    if (isCubeVisible(camera, cubes[i], cubes, numCubes)) {
+                for (Cube cube : cubes) {
+                    if (cube.isCubeVisible(camera)) {
                         //fade-in effect
-                        if(cubes[i].color.a < 255){
+                        if(cube.color.a < 255){
                             if(frameCounter % 1 == 0 ){
-                                cubes[i].color.a = cubes[i].color.a + 1;
+                                cube.color.a = cube.color.a + 1;
                             }
                         }
 
                         visibleCubes += 1;
-                        DrawCube(cubes[i].position, cubeSize, cubeSize, cubeSize, cubes[i].color);
+                        DrawCube(cube.position, cubeSize, cubeSize, cubeSize, cube.color);
                     } else {
-                        cubes[i].color.a = 0;
+                        cube.color.a = 0;
                     }
                 }
 
