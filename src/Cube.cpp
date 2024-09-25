@@ -1,13 +1,19 @@
 #include "raylib.h"
+#include "Cube.h"
 
-Cube::Cube() {
-    
-}
+Cube::Cube()
+    : position{ 0.0f, 0.0f, 0.0f }
+    , color{ 255, 255, 255, 255 }
+    , size{ 0.5f }
+{}
+
+Cube::~Cube() {}
 
 bool Cube::isCubeVisible(Camera camera) {
     // Check if the cube is in the view of the camera
-    Vector2 cubeScreenPos = GetWorldToScreen(cube.position, camera);
+    Vector2 cubeScreenPos = GetWorldToScreen(this->position, camera);
     if (cubeScreenPos.x < 0 || cubeScreenPos.x > GetScreenWidth() || cubeScreenPos.y < 0 || cubeScreenPos.y > GetScreenHeight()) {
+        this->color.a = 0;
         return false;
     }  
     // Cube is visible
@@ -27,7 +33,8 @@ bool Cube::IsFaceVisible(Camera camera, int faceIndex) {
         default: return false;
     }
 
-    Vector3 toCube = Vector3Subtract(this->position, camera.position);
+    // Vector3 toCube = Vector3Subtract(this->position, camera.position);
     
-    return Vector3DotProduct(toCube ,faceNormal) > 0;
+    // return Vector3DotProduct(toCube ,faceNormal) > 0;
+    return true;
 }

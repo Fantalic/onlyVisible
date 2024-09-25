@@ -60,6 +60,29 @@ std::vector<std::vector<double>> PerlinNoise::generate3DGraph(int size) {
 	}
 	return graph;
 }
+
+std::vector<std::vector<double>> PerlinNoise::smoothGraph(const std::vector<std::vector<double>>& graph, int factor) {
+    
+	std::vector<std::vector<double>> smoothedGraph(graph.size(), std::vector<double>(graph.size(), 0.0));
+
+    for (int x = factor; x < graph.size() - factor; x++) {
+        for (int y = factor; y < graph.size() - factor; y++) {
+            double sum = 0.0;
+            int count = 0;
+
+            // Average the surrounding cells
+            for (int dx = -factor; dx <= factor; dx++) {
+                for (int dy = -factor; dy <= factor; dy++) {
+                    sum += graph[x + dx][y + dy];
+                    count++;
+                }
+            }
+            smoothedGraph[x][y] = sum / count;
+        }
+    }
+    return smoothedGraph;
+}
+
 double PerlinNoise::getNoise3DWithOctaves(
 	double x,
 	double y,
@@ -68,7 +91,7 @@ double PerlinNoise::getNoise3DWithOctaves(
 ) {
 	double result = 0.0;
 	double amp = 1.0;
-	double freq = 1.0;
+	double freq = 0.5;
 	double max = 0.0;
 
 	for (int i = 0; i < octaves; i++) {

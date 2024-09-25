@@ -3,6 +3,8 @@
 
 #include <raylib.h>
 
+const double CUBE_SIZE = 0.5f;
+
 const Vector3 cubeVertices[8] = {
     { -0.5f, -0.5f, -0.5f }, // 0: Back bottom left
     {  0.5f, -0.5f, -0.5f }, // 1: Back bottom right

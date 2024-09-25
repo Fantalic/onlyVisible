@@ -3,39 +3,10 @@
 #include "PerlinNoise.h"
 #include "Cube.h"
 
-bool CheckCollisionRayBox(Ray ray, BoundingBox box)
-{
-    float tmin = -INFINITY, tmax = INFINITY;
-    Vector3 invDir = { 1.0f / ray.direction.x, 1.0f / ray.direction.y, 1.0f / ray.direction.z };
-    Vector3 bounds[2] = { box.min, box.max };
-
-    for (int i = 0; i < 3; i++) {
-        float t1 = (bounds[ray.direction.x < 0 ? 1 : 0].x - ray.position.x) * invDir.x;
-        float t2 = (bounds[1 - (ray.direction.x < 0 ? 1 : 0)].x - ray.position.x) * invDir.x;
-        tmin = fmax(tmin, fmin(t1, t2));
-        tmax = fmin(tmax, fmax(t1, t2));
-
-        t1 = (bounds[ray.direction.y < 0 ? 1 : 0].y - ray.position.y) * invDir.y;
-        t2 = (bounds[1 - (ray.direction.y < 0 ? 1 : 0)].y - ray.position.y) * invDir.y;
-        tmin = fmax(tmin, fmin(t1, t2));
-        tmax = fmin(tmax, fmax(t1, t2));
-
-        t1 = (bounds[ray.direction.z < 0 ? 1 : 0].z - ray.position.z) * invDir.z;
-        t2 = (bounds[1 - (ray.direction.z < 0 ? 1 : 0)].z - ray.position.z) * invDir.z;
-        tmin = fmax(tmin, fmin(t1, t2));
-        tmax = fmin(tmax, fmax(t1, t2));
-    }
-
-    return tmax >= tmin;
-}
-
-bool Vector3IsEqual(Vector3 v1, Vector3 v2) {
-    return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
-}
-
 int main() {
 
-    PerlinNoise pn(rand() % UINT_MAX);
+    unsigned int seed = 21; //rand() % UINT_MAX;
+    PerlinNoise pn(seed);
 
     // Initialize raylib
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
@@ -50,28 +21,24 @@ int main() {
     camera.projection = CAMERA_PERSPECTIVE;
 
     // Initialize the cubes
-    const float cubeSize = 0.5f;
-    const int numCubes = 10000;
     std::vector<Cube> cubes;
-    // for (int i = 0; i < numCubes; i++) {
-    //     cubes[i].position = { (float)GetRandomValue(-20, 20), (float)GetRandomValue(-100, 100), (float)GetRandomValue(-100, 100) };
-    //     cubes[i].color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
-    // }
 
-    std::vector<std::vector<double>> terrainGraph = pn.generate3DGraph(100);
+    int terrainSize = 400;
+    std::vector<std::vector<double>> terrainGraph = pn.smoothGraph( pn.generate3DGraph(terrainSize), 5);
+    // std::vector<std::vector<double>> terrainGraph = pn.generate3DGraph(terrainSize);
 
-    for (int x = 0; x < 100; x++) {
-        for (int y = 0; y < 100; y++) {
+
+    for (int x = 0; x < terrainSize; x++) {
+        for (int y = 0; y < terrainSize; y++) {
 
             //TODO: round the z value to int
             double nf = terrainGraph[x][y];
-            int z = (int)std::round(nf * 100 - 50);
+            int z = (int)std::round(nf * 500) - 300;
 
-            Vector3 pos = (Vector3){x*cubeSize,z*cubeSize,y*cubeSize};
+            Vector3 pos = (Vector3){x*CUBE_SIZE,z*CUBE_SIZE,y*CUBE_SIZE};
 
             Cube cube = Cube();
             cube.position = pos;
-            // cube.color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
             cube.color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)(int)std::round(100*nf), (unsigned char)(int)std::round(255*nf), 255 };
             
             cubes.push_back(cube);
@@ -110,7 +77,6 @@ int main() {
                 // the grid holds points of the objects mesh. representing the edges of the mesh 
                 // if  
                 // how has the grid has to look ? how big are its pieces ? 
-                // maybe they 
                 // ##################################
 
 
@@ -119,23 +85,23 @@ int main() {
                     if (cube.isCubeVisible(camera)) {
                         //fade-in effect
                         if(cube.color.a < 255){
-                            if(frameCounter % 1 == 0 ){
+                            if(frameCounter % 60 == 0 ){
                                 cube.color.a = cube.color.a + 1;
                             }
                         }
 
+                        
                         visibleCubes += 1;
-                        DrawCube(cube.position, cubeSize, cubeSize, cubeSize, cube.color);
-                    } else {
-                        cube.color.a = 0;
-                    }
+                        DrawCube(cube.position, CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, cube.color);
+
+                    } 
                 }
 
             // End drawing
             EndMode3D();
 
-            DrawText(TextFormat("visible CUbes: %d", visibleCubes), 10, 30, 20, BLACK);
-            DrawText(TextFormat("test: %d", terrainGraph[50][50]), 10, 50, 20, BLACK);
+            DrawText(TextFormat("visible Cubes: %d", visibleCubes), 10, 30, 20, BLACK);
+            DrawText(TextFormat("Seed: %d", seed), 10, 50, 20, BLACK);
         EndDrawing();
     }
 

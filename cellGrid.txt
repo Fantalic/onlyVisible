@@ -96,3 +96,36 @@ free(cubesMatrix);
 
 return 0;
 }
+
+
+bool CheckCollisionRayBox(Ray ray, BoundingBox box)
+{
+    float tmin = -INFINITY, tmax = INFINITY;
+    Vector3 invDir = { 1.0f / ray.direction.x, 1.0f / ray.direction.y, 1.0f / ray.direction.z };
+    Vector3 bounds[2] = { box.min, box.max };
+
+    for (int i = 0; i < 3; i++) {
+        float t1 = (bounds[ray.direction.x < 0 ? 1 : 0].x - ray.position.x) * invDir.x;
+        float t2 = (bounds[1 - (ray.direction.x < 0 ? 1 : 0)].x - ray.position.x) * invDir.x;
+        tmin = fmax(tmin, fmin(t1, t2));
+        tmax = fmin(tmax, fmax(t1, t2));
+
+        t1 = (bounds[ray.direction.y < 0 ? 1 : 0].y - ray.position.y) * invDir.y;
+        t2 = (bounds[1 - (ray.direction.y < 0 ? 1 : 0)].y - ray.position.y) * invDir.y;
+        tmin = fmax(tmin, fmin(t1, t2));
+        tmax = fmin(tmax, fmax(t1, t2));
+
+        t1 = (bounds[ray.direction.z < 0 ? 1 : 0].z - ray.position.z) * invDir.z;
+        t2 = (bounds[1 - (ray.direction.z < 0 ? 1 : 0)].z - ray.position.z) * invDir.z;
+        tmin = fmax(tmin, fmin(t1, t2));
+        tmax = fmin(tmax, fmax(t1, t2));
+    }
+
+    return tmax >= tmin;
+}
+
+/*************  ✨ Codeium Command ⭐  *************/
+/******  c2ada0fd-dc38-4ece-a14f-be9a55c05814  *******/
+bool Vector3IsEqual(Vector3 v1, Vector3 v2) {
+    return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+}

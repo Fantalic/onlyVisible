@@ -27,6 +27,8 @@ public:
 		int octaves
 	);
 	std::vector<std::vector<double>> generate3DGraph(int size);
+	std::vector<std::vector<double>> smoothGraph(const std::vector<std::vector<double>>& graph, int factor);
+
 	
 private:
 	double fade(double t);
