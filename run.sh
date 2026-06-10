@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
-case "$OSTYPE" in
-    msys*|cygwin*)
-        EXE=Game.exe
-        LIBS=(-lraylib -lopengl32 -lgdi32 -lwinmm)
-        ;;
-    *)
-        EXE=Game
-        LIBS=(-lraylib -lGL -lpthread -ldl -lX11 -lXrandr -lXi)
-        ;;
-esac
+BUILD_DIR="build"
 
-cd build
-g++ ../src/*.cpp -o "$EXE" -O2 -Wall -Wno-missing-braces -I ../include/ -L ../lib/ "${LIBS[@]}"
-"./$EXE"
-cd ..
+configure() {
+    case "$OSTYPE" in
+        msys*|cygwin*) cmake -B "$BUILD_DIR" -S . -G "MinGW Makefiles" ;;
+        *)             cmake -B "$BUILD_DIR" -S . ;;
+    esac
+}
+
+configure 2>/dev/null || { rm -rf "$BUILD_DIR" && configure; }
+
+cmake --build "$BUILD_DIR"
+
+case "$OSTYPE" in
+    msys*|cygwin*) "./$BUILD_DIR/Game.exe" ;;
+    *)             "./$BUILD_DIR/Game" ;;
+esac
