@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include "PerlinNoise.h"
 #include "Cube.h"
+#include <cmath>
 
 int main() {
 
@@ -35,7 +36,7 @@ int main() {
             double nf = terrainGraph[x][y];
             int z = (int)std::round(nf * 500) - 300;
 
-            Vector3 pos = (Vector3){x*CUBE_SIZE,z*CUBE_SIZE,y*CUBE_SIZE};
+            Vector3 pos = {x*CUBE_SIZE, z*CUBE_SIZE, y*CUBE_SIZE};
 
             Cube cube = Cube();
             cube.position = pos;
@@ -50,17 +51,12 @@ int main() {
     Vector3 prevCameraPos = camera.position;
     Vector3 prevCameraTarget = camera.target;
 
-    int visibleCubes = 0 ; 
-    int frameCounter = 0 ;
+    int visibleCubes = 0 ;
 
     while (!WindowShouldClose()) {
         UpdateCamera(&camera, CAMERA_FIRST_PERSON);
 
         visibleCubes = 0 ;
-        frameCounter++;
-        if(frameCounter > 120){
-            frameCounter = 0 ;
-        }
         BeginDrawing();
             // Clear the screen
             ClearBackground(RAYWHITE);
@@ -81,15 +77,15 @@ int main() {
 
 
                 // Draw the cubes that are visible to the camera
-                for (Cube cube : cubes) {
+                for (Cube& cube : cubes) {
                     if (cube.isCubeVisible(camera)) {
                         //fade-in effect
-                        if(cube.color.a < 255){
-                            if(frameCounter % 60 == 0 ){
-                                cube.color.a = cube.color.a + 1;
-                            }
+                        if(cube.color.a + 10  < 255){
+                            cube.color.a += 10;
+                            // if(cube.color.a >= 255) cube.color.a = 255;
+                        } else {
+                            cube.color.a = 255;
                         }
-
                         
                         visibleCubes += 1;
                         DrawCube(cube.position, CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, cube.color);
