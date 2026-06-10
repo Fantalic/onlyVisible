@@ -24,12 +24,12 @@ bool Cube::IsFaceVisible(Camera camera, int faceIndex) {
     Vector3 faceNormal;
     
     switch (faceIndex) {
-        case 0: faceNormal = (Vector3){0.0f, 0.0f, -1.0f}; break; // Back face
-        case 1: faceNormal = (Vector3){0.0f, 0.0f, +1.0f}; break; // Front face
-        case 2: faceNormal = (Vector3){0.0f, -1.0f, 0.0f}; break; // Bottom face
-        case 3: faceNormal = (Vector3){0.0f, +1.0f, 0.0f}; break; // Top face
-        case 4: faceNormal = (Vector3){-1.0f, 0.0f, +1.0f}; break; // Left face
-        case 5: faceNormal = (Vector3){+1.0f, +1.0f , +1.0f}; break; // Right face
+        case 0: faceNormal = Vector3{0.0f, 0.0f, -1.0f}; break; // Back face
+        case 1: faceNormal = Vector3{0.0f, 0.0f, +1.0f}; break; // Front face
+        case 2: faceNormal = Vector3{0.0f, -1.0f, 0.0f}; break; // Bottom face
+        case 3: faceNormal = Vector3{0.0f, +1.0f, 0.0f}; break; // Top face
+        case 4: faceNormal = Vector3{-1.0f, 0.0f, +1.0f}; break; // Left face
+        case 5: faceNormal = Vector3{+1.0f, +1.0f , +1.0f}; break; // Right face
         default: return false;
     }
 
