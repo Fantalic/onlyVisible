@@ -16,8 +16,8 @@
 │   ├── PerlinNoise.h        # Perlin noise declaration (seeded permutation vec)
 │   └── rlgl.h               # Vendored raylib rlgl header v5.0 (OpenGL abstraction)
 ├── CMakeLists.txt           # C++17, FetchContent → raylib 5.5
-├── run.sh                   # Configure + build + launch
-├── install.sh               # Linux system dependency installer (X11, GL)
+├── run.sh                   # Cross-platform configure + build + launch
+├── install.sh               # System dependency installer (Linux X11/GL, macOS)
 ├── AGENTS.md                # Developer notes
 └── .gitignore
 ```
@@ -39,13 +39,24 @@ Camera → GetWorldToScreen(pos) → (x, y) on screen?
 
 ## Quick Start
 
+**No manual raylib installation required** — CMake's `FetchContent` downloads raylib 5.5 source automatically.
+
 ### Prerequisites
 
-- C++17 compiler (GCC, Clang, MSVC)
-- CMake 3.20+
-- Git (for FetchContent to download raylib)
+- **C++17 compiler** (GCC, Clang, MSVC)
+- **CMake 3.20+**
+- **Git** (for FetchContent to download raylib)
 
-### Setup & Run
+Platform-specific setup:
+
+| Platform | Compiler | System deps |
+|----------|----------|-------------|
+| **Linux** | GCC / Clang | `./install.sh` (X11, GL) |
+| **macOS** | Apple Clang | `./install.sh` (Homebrew → raylib) |
+| **Windows (MinGW)** | GCC (w64devkit, MSYS2) | None — bundled with toolchain |
+| **Windows (WSL)** | GCC in WSL | `./install.sh` inside WSL |
+
+### Build & Run
 
 ```bash
 # One command — configure, build, launch
@@ -55,39 +66,18 @@ Camera → GetWorldToScreen(pos) → (x, y) on screen?
 Or manually:
 
 ```bash
-cmake -B build -S .               # configure (add -G "MinGW Makefiles" on Windows)
-cmake --build build               # build
-./build/Game                      # launch (Game.exe on Windows)
+# Linux / macOS / WSL
+cmake -B build -S .
+cmake --build build
+./build/Game
+
+# Windows (MinGW / Git Bash)
+cmake -B build -S . -G "MinGW Makefiles"
+cmake --build build
+./build/Game.exe
 ```
 
-**No manual raylib installation required** — CMake's `FetchContent` downloads raylib 5.5 source automatically.
-
-For Linux, run `./install.sh` first to install X11 and OpenGL dev packages.
-
-### Controls
-
-| Key | Action |
-|-----|--------|
-| WASD | Move camera |
-| Mouse | Look around (hold right-click or use CAMERA_FIRST_PERSON) |
-
-## Configuration
-
-All parameters are currently hardcoded in source:
-
-| Parameter | Location | Value |
-|-----------|----------|-------|
-| Terrain size | `main.cpp:27` | 400 × 400 |
-| Seed | `main.cpp:9` | 21 |
-| Cube size | `include/Cube.h` | 0.5f |
-| Noise octaves | `PerlinNoise.cpp` | 6 |
-| Smoothing kernel | `main.cpp:28` | 5×5 box blur |
-| Fade-in rate | `main.cpp:83` | +10 alpha/frame |
-| Initial camera | `main.cpp:18` | (30, 10, 10) |
-
-## Development
-
-No tests, linters, or formatters configured — this is a focused prototyping project. The `run.sh` script includes a retry workaround (`rm -rf build` on CMake failure) for stale caches from earlier build approaches.
+The `run.sh` script auto-detects your platform and uses the correct generator and binary name.
 
 ## Technologies
 
